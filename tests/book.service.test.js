@@ -44,10 +44,19 @@ describe ('searchBook', () => {
             expect(books.length).toBe(1)
         })
 
-        it ('should return the correct book title', () => {
+        it ('should return the correct book title with the title and publish data concatenated', () => {
             const books = bookService.searchBooks('Test');
             // logic in the function returns title AND year
             expect(books[0].title).toBe('Test book 2009')
+        })
+
+        // same as above but with toMatchObject
+        it ('should return the correct book title with the title and publish data concatenated', () => {
+            const books = bookService.searchBooks('Test');
+            // logic in the function returns title AND year
+            expect(books[0]).toMatchObject(
+                { title: 'Test book 2009' }
+                )
         })
     })
 
@@ -75,3 +84,92 @@ describe ('searchBook', () => {
         })
     })
 })
+
+describe ('getMostPopularBook', () => {
+    describe('when two books are given', () => {
+
+    beforeEach(() => {
+    // Mock the getBooks() function to return the below array containing two objects
+        booksProvider.getBooks = jest.fn(() => [
+            {
+                _id: 1,
+                ordered: 100,
+            },
+            {
+                _id: 2,
+                ordered: 50
+            }
+        ])
+    })
+
+        it('should return the book with the highest order count', () => {
+            //getMostPopularBook just returns the order of the most popular book
+            const book = bookService.getMostPopularBook();
+            expect(book._id).toBe(1)
+        })
+    })
+})
+
+
+describe ('calculateDiscount', () => {
+    describe('when a book is given with id', () => {
+        beforeEach(() => {
+            // Mock, getting from the database
+            booksProvider.getBooks = jest.fn(() => [
+                {
+                    _id: 1,
+                    price: 100
+                },
+            ])
+        })
+
+        it ('should return price with 20% discount', () => {
+            const price = bookService.calculateDiscount(1)
+            expect(price).toBe(80)
+        })
+    })
+
+    describe('when book with given id not found', () => {
+        beforeEach(() => {
+            // Mock, getting from the database and returning NO books
+            booksProvider.getBooks = jest.fn(() => [])
+        })
+
+        it ('should return price with 20% discount', () => {
+            expect(() => bookService.calculateDiscount(1)).toThrow('Book with such id not found')
+        })
+    }) 
+})  
+
+// Async
+describe ('calculateDiscountAsync', () => {
+    describe('when a book is given with id', () => {
+        beforeEach(() => {
+            // Mock, getting from the database
+            booksProvider.getBooks = jest.fn(() => [
+                {
+                    _id: 1,
+                    price: 100
+                },
+            ])
+        })
+
+        it ('should return price with 20% discount', async () => {
+            const price = await bookService.calculateDiscountAsync(1)
+            expect(price).toBe(80)
+        })
+    })
+
+    describe('when book with given id not found', () => {
+        beforeEach(() => {
+            // Mock, getting from the database and returning NO books
+            booksProvider.getBooks = jest.fn(() => [])
+        })
+
+        it ('should return price with 20% discount', () => {
+            expect(async () => await bookService.calculateDiscountAsync(1))
+            .rejects
+            .toThrow('Book with such id not found')
+        })
+    }) 
+})  
